@@ -1,0 +1,14 @@
+### Prediction
+POST http://localhost:8081/predict
+Content-Type: application/json
+
+{
+  "season" : "2022-23",
+  "team" : "Manchester United",
+  "gamesPlayed" : 38,
+  "wins" : 21,
+  "draws" : 12,
+  "loses" : 5,
+  "goalsScored" : 68,
+  "goalsConceded" : 30
+}
