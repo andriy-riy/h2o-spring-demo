@@ -24,7 +24,12 @@
         <dependency>
             <groupId>ai.h2o</groupId>
             <artifactId>h2o-genmodel</artifactId>
-            <version>3.36.0.3</version>
+            <version>3.36.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>ai.h2o</groupId>
+            <artifactId>h2o-genmodel-ext-xgboost</artifactId>
+            <version>3.36.1.1</version>
         </dependency>
     </dependencies>
 
