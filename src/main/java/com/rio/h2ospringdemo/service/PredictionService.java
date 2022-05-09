@@ -14,6 +14,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +60,7 @@ public class PredictionService {
         var easyPredictModelWrapper = new EasyPredictModelWrapper(pricePredictionModel);
         RegressionModelPrediction regressionModelPrediction = (RegressionModelPrediction) easyPredictModelWrapper.predict(rowData);
 
-        return new PricePrediction(regressionModelPrediction.value);
+        return new PricePrediction(BigDecimal.valueOf(regressionModelPrediction.value).setScale(2, RoundingMode.DOWN));
     }
 
     private RowData buildPredictPositionRowData(Player player) {

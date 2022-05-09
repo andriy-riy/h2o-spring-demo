@@ -1,8 +1,8 @@
 package com.rio.h2ospringdemo.model;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 public record PricePrediction(
-        Double price
+        BigDecimal price
 ) {
 }
