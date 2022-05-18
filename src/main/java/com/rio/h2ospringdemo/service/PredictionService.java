@@ -3,6 +3,7 @@ package com.rio.h2ospringdemo.service;
 import com.rio.h2ospringdemo.model.PositionPrediction;
 import com.rio.h2ospringdemo.model.Player;
 import com.rio.h2ospringdemo.model.PricePrediction;
+import hex.genmodel.GenModel;
 import hex.genmodel.MojoModel;
 import hex.genmodel.easy.EasyPredictModelWrapper;
 import hex.genmodel.easy.RowData;
@@ -14,6 +15,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.ZoneId;
@@ -23,15 +25,18 @@ import java.util.List;
 @Service
 public class PredictionService {
 
-    private final MojoModel positionPredictionModel;
-    private final MojoModel pricePredictionModel;
+    private final GenModel positionPredictionModel;
+    private final GenModel pricePredictionModel;
 
     public PredictionService(
-            @Value("classpath:fifa_position_prediction_model.zip") Resource positionPredictionModel,
-            @Value("classpath:fifa_price_prediction_model.zip") Resource pricePredictionModel) throws IOException {
+            @Value("classpath:XGBoost_1_AutoML_2_20220518_143427.zip") Resource positionPredictionMojoModel,
+            @Value("classpath:GBM_2_AutoML_3_20220518_144001.zip") Resource pricePredictionMojoModel) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
-        this.positionPredictionModel = MojoModel.load(positionPredictionModel.getFile().getAbsolutePath());
-        this.pricePredictionModel = MojoModel.load(pricePredictionModel.getFile().getAbsolutePath());
+        this.positionPredictionModel = MojoModel.load(positionPredictionMojoModel.getFile().getAbsolutePath());
+        //this.positionPredictionModel = (GenModel) Class.forName("XGBoost_1_AutoML_2_20220518_143427").getDeclaredConstructor().newInstance();
+
+        this.pricePredictionModel = MojoModel.load(pricePredictionMojoModel.getFile().getAbsolutePath());
+        //this.pricePredictionModel = (GenModel) Class.forName("GBM_2_AutoML_3_20220518_144001").getDeclaredConstructor().newInstance();
     }
 
     public PositionPrediction predictPosition(Player player) throws PredictException {
@@ -40,6 +45,10 @@ public class PredictionService {
         MultinomialModelPrediction multinomialModelPrediction = (MultinomialModelPrediction) easyPredictModelWrapper.predict(rowData);
 
         String[] domainValues = positionPredictionModel.getDomainValues(positionPredictionModel.getResponseName());
+        if (domainValues == null) {
+            domainValues = positionPredictionModel.getDomainValues()[positionPredictionModel.getNames().length];
+        }
+
         List<PositionPrediction.PositionProbability> positionProbabilities = new ArrayList<>(domainValues.length);
 
         for (int i = 0; i < domainValues.length; i++) {
