@@ -4,18 +4,13 @@ import com.rio.h2ospringdemo.model.PositionPrediction;
 import com.rio.h2ospringdemo.model.Player;
 import com.rio.h2ospringdemo.model.PricePrediction;
 import hex.genmodel.GenModel;
-import hex.genmodel.MojoModel;
 import hex.genmodel.easy.EasyPredictModelWrapper;
 import hex.genmodel.easy.RowData;
 import hex.genmodel.easy.exception.PredictException;
 import hex.genmodel.easy.prediction.MultinomialModelPrediction;
 import hex.genmodel.easy.prediction.RegressionModelPrediction;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.ZoneId;
@@ -25,32 +20,20 @@ import java.util.List;
 @Service
 public class PredictionService {
 
-    private final GenModel positionPredictionModel;
-    private final GenModel pricePredictionModel;
+    private final EasyPredictModelWrapper positionPredictionModelWrapper;
+    private final EasyPredictModelWrapper pricePredictionModelWrapper;
 
-    public PredictionService(
-            @Value("classpath:XGBoost_1_AutoML_2_20220518_143427.zip") Resource positionPredictionMojoModel,
-            @Value("classpath:GBM_2_AutoML_3_20220518_144001.zip") Resource pricePredictionMojoModel) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-
-        // POJO model: https://github.com/h2oai/h2o-3/blob/master/h2o-docs/src/product/pojo-quickstart.rst
-        // MOJO model: https://github.com/h2oai/h2o-3/blob/master/h2o-docs/src/product/mojo-quickstart.rst
-
-        this.positionPredictionModel = MojoModel.load(positionPredictionMojoModel.getFile().getAbsolutePath());
-        //this.positionPredictionModel = (GenModel) Class.forName("XGBoost_1_AutoML_2_20220518_143427").getDeclaredConstructor().newInstance();
-
-        this.pricePredictionModel = MojoModel.load(pricePredictionMojoModel.getFile().getAbsolutePath());
-        //this.pricePredictionModel = (GenModel) Class.forName("GBM_2_AutoML_3_20220518_144001").getDeclaredConstructor().newInstance();
+    public PredictionService(EasyPredictModelWrapper positionPredictionModelWrapper, EasyPredictModelWrapper pricePredictionModelWrapper) {
+        this.positionPredictionModelWrapper = positionPredictionModelWrapper;
+        this.pricePredictionModelWrapper = pricePredictionModelWrapper;
     }
 
     public PositionPrediction predictPosition(Player player) throws PredictException {
         RowData rowData = buildPredictPositionRowData(player);
-        var easyPredictModelWrapper = new EasyPredictModelWrapper(positionPredictionModel);
-        MultinomialModelPrediction multinomialModelPrediction = (MultinomialModelPrediction) easyPredictModelWrapper.predict(rowData);
+        MultinomialModelPrediction multinomialModelPrediction = positionPredictionModelWrapper.predictMultinomial(rowData);
 
-        String[] domainValues = positionPredictionModel.getDomainValues(positionPredictionModel.getResponseName());
-        if (domainValues == null) {
-            domainValues = positionPredictionModel.getDomainValues()[positionPredictionModel.getNames().length];
-        }
+        GenModel model = this.positionPredictionModelWrapper.getModel();
+        String[] domainValues = model.getDomainValues(model.getResponseIdx());
 
         List<PositionPrediction.PositionProbability> positionProbabilities = new ArrayList<>(domainValues.length);
 
@@ -69,8 +52,7 @@ public class PredictionService {
 
     public PricePrediction predictPrice(Player player) throws PredictException {
         RowData rowData = buildPredictPriceRowData(player);
-        var easyPredictModelWrapper = new EasyPredictModelWrapper(pricePredictionModel);
-        RegressionModelPrediction regressionModelPrediction = (RegressionModelPrediction) easyPredictModelWrapper.predict(rowData);
+        RegressionModelPrediction regressionModelPrediction = pricePredictionModelWrapper.predictRegression(rowData);
 
         return new PricePrediction(BigDecimal.valueOf(regressionModelPrediction.value).setScale(2, RoundingMode.DOWN));
     }
