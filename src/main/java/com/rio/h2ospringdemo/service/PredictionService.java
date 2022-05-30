@@ -54,7 +54,7 @@ public class PredictionService {
         RowData rowData = buildPredictPriceRowData(player);
         RegressionModelPrediction regressionModelPrediction = pricePredictionModelWrapper.predictRegression(rowData);
 
-        return new PricePrediction(BigDecimal.valueOf(regressionModelPrediction.value).setScale(2, RoundingMode.DOWN));
+        return new PricePrediction(BigDecimal.valueOf(regressionModelPrediction.value).setScale(2, RoundingMode.HALF_UP));
     }
 
     private RowData buildPredictPositionRowData(Player player) {

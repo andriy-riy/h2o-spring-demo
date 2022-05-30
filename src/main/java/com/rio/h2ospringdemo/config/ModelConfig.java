@@ -18,9 +18,9 @@ public class ModelConfig {
     // MOJO model: https://github.com/h2oai/h2o-3/blob/master/h2o-docs/src/product/mojo-quickstart.rst
 
     @Bean
-    public EasyPredictModelWrapper positionPredictionModelWrapper(@Value("classpath:XGBoost_1_AutoML_2_20220518_143427.zip") Resource positionPredictionMojoModel) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public EasyPredictModelWrapper positionPredictionModelWrapper(@Value("classpath:XGBoost_1_AutoML_1_20220530_214403.zip") Resource positionPredictionMojoModel) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         GenModel model = MojoModel.load(positionPredictionMojoModel.getFile().getAbsolutePath());
-        //GenModel model = (GenModel) Class.forName("XGBoost_1_AutoML_2_20220518_143427").getDeclaredConstructor().newInstance();
+        //GenModel model = (GenModel) Class.forName("XGBoost_1_AutoML_1_20220530_214403").getDeclaredConstructor().newInstance();
 
         return new EasyPredictModelWrapper(model);
     }
